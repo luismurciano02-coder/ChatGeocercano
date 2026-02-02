@@ -480,4 +480,138 @@ final class ApiController extends AbstractController
             ], 500);
         }
     }
+
+    #[Route('/invitar', name: 'invitar', methods: ['POST'])]
+    public function invitar(
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        try {
+            // Obtener datos JSON del request
+            $data = json_decode($request->getContent(), true);
+
+            // Validar campos requeridos
+            if (!isset($data['token_usuario']) || !isset($data['id_usuario_invitado']) || !isset($data['id_sala'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Faltan campos requeridos'
+                ], 400);
+            }
+
+            // Buscar usuario remitente por token
+            $remitente = $em->getRepository(Usuario::class)->findOneBy(['token' => $data['token_usuario']]);
+            
+            if (!$remitente) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Token inexistente o ya expirado'
+                ], 401);
+            }
+
+            // Buscar usuario invitado por ID
+            $invitado = $em->getRepository(Usuario::class)->find($data['id_usuario_invitado']);
+            
+            if (!$invitado) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Usuario invitado no existe'
+                ], 404);
+            }
+
+            // Verificar que ambos usuarios tengan coordenadas
+            if (!$remitente->getLatitud() || !$remitente->getLongitud() || 
+                !$invitado->getLatitud() || !$invitado->getLongitud()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Usuario sin coordenadas'
+                ], 400);
+            }
+
+            // Verificar que el usuario invitado esté dentro del radio de 5km
+            $distancia = $this->calcularDistancia(
+                $remitente->getLatitud(),
+                $remitente->getLongitud(),
+                $invitado->getLatitud(),
+                $invitado->getLongitud()
+            );
+
+            if ($distancia > 5) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'El usuario ya no está en el radio de 5km'
+                ], 400);
+            }
+
+            // Buscar sala por ID
+            $sala = $em->getRepository(\App\Entity\Chat::class)->find($data['id_sala']);
+            
+            if (!$sala) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'La sala no existe'
+                ], 404);
+            }
+
+            // Verificar que la sala sea privada
+            if ($sala->getTipo() !== 'privado') {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Solo se puede invitar a salas privadas'
+                ], 400);
+            }
+
+            // Verificar que el remitente sea el creador de la sala
+            if ($sala->getCreador()->getId() !== $remitente->getId()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Solo el creador puede invitar usuarios'
+                ], 403);
+            }
+
+            // Verificar si ya existe una invitación pendiente
+            $invitacionExistente = $em->getRepository(\App\Entity\Invitacion::class)->findOneBy([
+                'remitente' => $remitente,
+                'destinatario' => $invitado,
+                'chat' => $sala
+            ]);
+
+            if ($invitacionExistente) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error al invitar',
+                    'error' => 'Ya existe una invitación para este usuario'
+                ], 400);
+            }
+
+            // Crear la invitación
+            $invitacion = new \App\Entity\Invitacion();
+            $invitacion->setRemitente($remitente);
+            $invitacion->setDestinatario($invitado);
+            $invitacion->setChat($sala);
+
+            $em->persist($invitacion);
+            $em->flush();
+
+            // Respuesta exitosa
+            return $this->json([
+                'success' => true,
+                'message' => 'Invitación enviada correctamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error al invitar',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
