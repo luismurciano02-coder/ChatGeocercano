@@ -48,6 +48,48 @@ class UsuarioRepository extends ServiceEntityRepository implements PasswordUpgra
     //        ;
     //    }
 
+    /**
+     * Busca usuarios cercanos dentro de 5km usando la fórmula de Haversine
+     * @return Usuario[] Returns an array of Usuario objects nearby
+     */
+    public function buscarCercanos(float $latitud, float $longitud, float $distanciaKm = 5): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        
+        $sql = '
+            SELECT u.*, 
+            (
+                6371 * acos(
+                    cos(radians(:latitud)) * cos(radians(u.latitud)) *
+                    cos(radians(u.longitud) - radians(:longitud)) +
+                    sin(radians(:latitud)) * sin(radians(u.latitud))
+                )
+            ) as distancia
+            FROM usuario u
+            WHERE u.latitud IS NOT NULL 
+            AND u.longitud IS NOT NULL
+            HAVING distancia <= :distanciaKm
+            ORDER BY distancia ASC
+        ';
+        
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery([
+            'latitud' => $latitud,
+            'longitud' => $longitud,
+            'distanciaKm' => $distanciaKm
+        ]);
+        
+        $usuarios = [];
+        foreach ($result->fetchAllAssociative() as $row) {
+            $usuario = $this->find($row['id']);
+            if ($usuario) {
+                $usuarios[] = $usuario;
+            }
+        }
+        
+        return $usuarios;
+    }
+
     //    public function findOneBySomeField($value): ?Usuario
     //    {
     //        return $this->createQueryBuilder('u')
