@@ -15,8 +15,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[Route('/api', name: 'api_')]
 final class ApiController extends AbstractController
 {
-    #[Route('/usuario', name: 'usuario_register', methods: ['POST'])]
-    public function register(
+    #[Route('/register', name: 'register', methods: ['POST'])]
+    public function apiRegister(
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher
@@ -30,7 +30,7 @@ final class ApiController extends AbstractController
                 !isset($data['latitud']) || !isset($data['longitud'])) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Error en el registro del nuevo usuario',
+                    'message' => 'Error en el registro',
                     'error' => 'Faltan campos requeridos'
                 ], 400);
             }
@@ -40,17 +40,18 @@ final class ApiController extends AbstractController
             if ($usuarioExistente) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Error en el registro del nuevo usuario',
-                    'error' => 'La cuenta ya está dada de alta'
+                    'message' => 'Error en el registro',
+                    'error' => 'El email ya está en uso'
                 ], 400);
             }
 
             // Crear nuevo usuario
             $usuario = new Usuario();
             $usuario->setEmail($data['email']);
+            $usuario->setNombre($data['nombre'] ?? 'Usuario'); // Nombre opcional, valor por defecto
             
             // Hashear la contraseña
-            $hashedPassword = $passwordcHasher->hashPassword($usuario, $data['password']);
+            $hashedPassword = $passwordHasher->hashPassword($usuario, $data['password']);
             $usuario->setPassword($hashedPassword);
             
             // Establecer coordenadas GPS
@@ -77,7 +78,7 @@ final class ApiController extends AbstractController
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
-                'message' => 'Error en el registro del nuevo usuario',
+                'message' => 'Error en el registro',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -613,5 +614,11 @@ final class ApiController extends AbstractController
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    #[Route('/doc', name: 'api_doc', methods: ['GET'])]
+    public function apiDocumentation(): Response
+    {
+        return $this->render('api/documentation.html.twig');
     }
 }

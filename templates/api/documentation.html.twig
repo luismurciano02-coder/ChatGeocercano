@@ -1,0 +1,924 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}API Documentation - ChatGeocercano{% endblock %}
+
+{% block body %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #f5f7fa;
+        color: #2d3748;
+    }
+    
+    .navbar {
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .navbar h1 {
+        font-size: 1.5rem;
+    }
+    
+    .navbar a {
+        color: white;
+        background: #667eea;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+    
+    .navbar a:hover {
+        background: #5568d3;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .header {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header h1 {
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+        color: #718096;
+        font-size: 1.1rem;
+    }
+    
+    .endpoint {
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .endpoint-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .method-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: bold;
+        color: white;
+        font-size: 0.85rem;
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .method-post {
+        background: #3182ce;
+    }
+    
+    .method-get {
+        background: #38a169;
+    }
+    
+    .method-put {
+        background: #ed8936;
+    }
+    
+    .method-delete {
+        background: #e53e3e;
+    }
+    
+    .endpoint-path {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        flex: 1;
+    }
+    
+    .access-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .access-public {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .access-token {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+    
+    .endpoint-content {
+        padding: 1.5rem;
+    }
+    
+    .section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #4a5568;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .section-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        margin: 2rem 0;
+        border: none;
+    }
+    
+    .code-block {
+        background: #1a202c;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    .code-block.json {
+        border-left: 4px solid #667eea;
+    }
+    
+    .response-success {
+        border-left: 4px solid #38a169;
+    }
+    
+    .response-error {
+        border-left: 4px solid #e53e3e;
+    }
+    
+    .description {
+        color: #4a5568;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    
+    .table th {
+        background: #edf2f7;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        border-bottom: 2px solid #cbd5e0;
+    }
+    
+    .table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .table tr:hover {
+        background: #f7fafc;
+    }
+    
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #edf2f7;
+        color: #2d3748;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .toc {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 20px;
+    }
+    
+    .toc h3 {
+        margin-bottom: 1rem;
+        color: #2d3748;
+    }
+    
+    .toc ul {
+        list-style: none;
+    }
+    
+    .toc li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .toc a {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .toc a:hover {
+        color: #5568d3;
+    }
+    
+    .grid {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2d3748;
+        font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e0;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.85rem;
+        box-sizing: border-box;
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .test-button {
+        background: #38a169;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        width: 100%;
+    }
+    
+    .test-button:hover {
+        background: #2f855a;
+    }
+    
+    .test-button:active {
+        transform: scale(0.98);
+    }
+    
+    .response-box {
+        background: #1a202c;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-top: 1rem;
+        border-left: 4px solid #38a169;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .response-box.show {
+        display: block;
+    }
+    
+    .response-box.error {
+        border-left-color: #e53e3e;
+    }
+    
+    .test-section {
+        background: #f7fafc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+    
+    .test-section .section-title {
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .toc {
+            position: static;
+        }
+    }
+</style>
+
+<div class="navbar">
+    <h1>🌍 ChatGeocercano API</h1>
+    <a href="{{ path('app_home') }}">← Volver al Home</a>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>API Documentation</h1>
+        <p>Documentación completa de todos los endpoints disponibles en ChatGeocercano</p>
+    </div>
+    
+    <div class="grid">
+        <!-- Tabla de Contenidos -->
+        <div class="toc">
+            <h3>📑 Endpoints</h3>
+            <ul>
+                <li><a href="#register">1. Register</a></li>
+                <li><a href="#login">2. Login</a></li>
+                <li><a href="#logout">3. Logout</a></li>
+                <li><a href="#home">4. Usuarios Cercanos</a></li>
+                <li><a href="#general">5. Chat General</a></li>
+                <li><a href="#privado">6. Chat Privado</a></li>
+                <li><a href="#cambiar-chat">7. Cambiar Chat</a></li>
+                <li><a href="#invitar">8. Invitar Usuario</a></li>
+            </ul>
+        </div>
+        
+        <!-- Contenido -->
+        <div>
+            <!-- REGISTER -->
+            <div class="endpoint" id="register">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/register</span>
+                    <span class="access-badge access-public">Público</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Registra un nuevo usuario usando solo su email. Las coordenadas GPS son obligatorias para situarlo en el radar inmediatamente.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">{
+  "email": "luis@ejemplo.com",
+  "password": "123",
+  "latitud": 40.4167,
+  "longitud": -3.7033
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa (201)</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Usuario registrado",
+  "data": {
+    "usuario_token": "BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi"
+  }
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (400)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "Error en el registro",
+  "error": "El email ya está en uso"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-register">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="usuario@ejemplo.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Contraseña</label>
+                                <input type="password" name="password" placeholder="123456" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Latitud</label>
+                                <input type="number" name="latitud" placeholder="40.4167" step="0.0001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Longitud</label>
+                                <input type="number" name="longitud" placeholder="-3.7033" step="0.0001" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpoint('test-register', '/api/register')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-register"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- LOGIN -->
+            <div class="endpoint" id="login">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/login</span>
+                    <span class="access-badge access-public">Público</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Envía las credenciales para verificar que el usuario existe. Recibe el token de sesión si la verificación es correcta.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">{
+  "email": "luis@ejemplo.com",
+  "password": "123"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Usuario válido",
+  "data": {
+    "usuario_token": "BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi"
+  }
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (401)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "Conexión no permitida",
+  "error": "Credenciales inválidas"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-login">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="usuario@ejemplo.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Contraseña</label>
+                                <input type="password" name="password" placeholder="123456" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpoint('test-login', '/api/login')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-login"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- LOGOUT -->
+            <div class="endpoint" id="logout">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/logout</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Informa al servidor para invalidar el token actual y marcar al usuario como desconectado.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Sesión cerrada correctamente"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (401)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "Error al cerrar sesión",
+  "error": "Token inexistente o ya expirado"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-logout">
+                            <div class="form-group">
+                                <label>Token (Bearer Token)</label>
+                                <input type="text" name="token" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpointWithToken('test-logout', '/api/logout')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-logout"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- HOME (USUARIOS CERCANOS) -->
+            <div class="endpoint" id="home">
+                <div class="endpoint-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-path">/api/home</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Obtiene el listado de usuarios que se encuentran en un radio de 5 km de la posición actual del usuario logeado.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Listado de usuarios cercanos",
+  "data": {
+    "usuarios_cercanos": {
+      {"distancia": "1.2km"},
+      {"distancia": "3.5km"}
+    }
+  }
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (404)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "No hay usuarios cerca",
+  "error": "No se encontraron registros en 5km"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-home">
+                            <div class="form-group">
+                                <label>Token (Bearer Token)</label>
+                                <input type="text" name="token" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpointWithToken('test-home', '/api/home', 'GET')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-home"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- CHAT GENERAL -->
+            <div class="endpoint" id="general">
+                <div class="endpoint-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-path">/api/general</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Obtiene el histórico de mensajes enviados al canal público de la aplicación.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Mensajes del chat general",
+  "data": {
+    "mensajes": {
+      {"usuario": "Alvaro", "texto": "Hola a todos", "hora": "12:00"},
+      {"usuario": "Luis", "texto": "¿Hay alguien?", "hora": "12:05"}
+    }
+  }
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-general">
+                            <div class="form-group">
+                                <label>Token (Bearer Token)</label>
+                                <input type="text" name="token" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpointWithToken('test-general', '/api/general', 'GET')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-general"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- CHAT PRIVADO -->
+            <div class="endpoint" id="privado">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/privado</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Envía el nombre de la sala para crear un nuevo chat privado efímero.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">{
+  "token_usuario": "BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi",
+  "nombre_sala": "Grupo de Trabajo"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Sala privada creada",
+  "data": {
+    "id_sala": "ACdc123456",
+    "nombre": "Grupo de Trabajo"
+  }
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-privado">
+                            <div class="form-group">
+                                <label>Token Usuario</label>
+                                <input type="text" name="token_usuario" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre de Sala</label>
+                                <input type="text" name="nombre_sala" placeholder="Grupo de Trabajo" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpoint('test-privado', '/api/privado')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-privado"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- NAVEGACIÓN ENTRE CHATS -->
+            <div class="endpoint" id="cambiar-chat">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/privado/cambiarchat</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Informa al servidor que el usuario cambia de sala para recibir los mensajes correspondientes al chat destino.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">{
+  "token_usuario": "BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi",
+  "id_sala_destino": "ACdc123456"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Cambio de sala exitoso"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-cambiar-chat">
+                            <div class="form-group">
+                                <label>Token Usuario</label>
+                                <input type="text" name="token_usuario" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ID Sala Destino</label>
+                                <input type="text" name="id_sala_destino" placeholder="ACdc123456" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpoint('test-cambiar-chat', '/api/privado/cambiarchat')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-cambiar-chat"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
+            <!-- INVITAR -->
+            <div class="endpoint" id="invitar">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/invitar</span>
+                    <span class="access-badge access-token">Token</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Envía el ID del usuario seleccionado del radar para invitarle a una sala privada activa.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">{
+  "token_usuario": "BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi",
+  "id_usuario_invitado": "25",
+  "id_sala": "ACdc123456"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Invitación enviada correctamente"
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (400)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "Error al invitar",
+  "error": "El usuario ya no está en el radio de 5km"
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-invitar">
+                            <div class="form-group">
+                                <label>Token Usuario</label>
+                                <input type="text" name="token_usuario" placeholder="BwIERBTSIsIml2dCI6MT2xNTgw2DAwMC2wi" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ID Usuario Invitado</label>
+                                <input type="number" name="id_usuario_invitado" placeholder="25" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ID Sala</label>
+                                <input type="text" name="id_sala" placeholder="ACdc123456" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpoint('test-invitar', '/api/invitar')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-invitar"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function testEndpoint(formId, endpoint) {
+        const form = document.getElementById(formId);
+        const responseBox = document.getElementById('response-' + formId);
+        
+        // Obtener datos del formulario
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        // Convertir latitud y longitud a números
+        if (data.latitud) data.latitud = parseFloat(data.latitud);
+        if (data.longitud) data.longitud = parseFloat(data.longitud);
+        
+        // Construir la URL correcta
+        const baseUrl = window.location.pathname;
+        const url = baseUrl.replace('/api/doc', endpoint);
+        
+        // Realizar solicitud
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            responseBox.classList.add('show');
+            responseBox.classList.remove('error');
+            responseBox.textContent = JSON.stringify(result, null, 2);
+            
+            // Colorear si es error
+            if (!result.success) {
+                responseBox.classList.add('error');
+            }
+        })
+        .catch(error => {
+            responseBox.classList.add('show', 'error');
+            responseBox.textContent = 'Error: ' + error.message;
+        });
+    }
+    
+    function testEndpointWithToken(formId, endpoint, method = 'POST') {
+        const form = document.getElementById(formId);
+        const responseBox = document.getElementById('response-' + formId);
+        
+        // Obtener datos del formulario
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        // Extraer el token
+        let token = data.token || data.token_usuario;
+        delete data.token;
+        delete data.token_usuario;
+        
+        // Construir la URL correcta
+        const baseUrl = window.location.pathname;
+        const url = baseUrl.replace('/api/doc', endpoint);
+        
+        // Configurar la solicitud
+        const fetchOptions = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        };
+        
+        // Solo agregar body para POST
+        if (method === 'POST') {
+            fetchOptions.body = JSON.stringify(data);
+        }
+        
+        // Realizar solicitud
+        fetch(url, fetchOptions)
+        .then(response => response.json())
+        .then(result => {
+            responseBox.classList.add('show');
+            responseBox.classList.remove('error');
+            responseBox.textContent = JSON.stringify(result, null, 2);
+            
+            // Colorear si es error
+            if (!result.success) {
+                responseBox.classList.add('error');
+            }
+        })
+        .catch(error => {
+            responseBox.classList.add('show', 'error');
+            responseBox.textContent = 'Error: ' + error.message;
+        });
+    }
+</script>
+{% endblock %}
