@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+providers = ["php", "nodejs", "yarn"]
+
+[deploy]
+startCommand = "npm run build && composer install --no-dev --optimize-autoloader && php bin/console doctrine:migrations:migrate --no-interaction && php -S 0.0.0.0:${PORT:-8000} -t public"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5
+
+[env]
+APP_ENV = "prod"
+APP_DEBUG = "0"
+PORT = "8000"
