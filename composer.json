@@ -61,10 +61,10 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
-        "post-install-cmd": [
+        "post-install-cmd-disabled": [
             "@auto-scripts"
         ],
-        "post-update-cmd": [
+        "post-update-cmd-disabled": [
             "@auto-scripts"
         ]
     },

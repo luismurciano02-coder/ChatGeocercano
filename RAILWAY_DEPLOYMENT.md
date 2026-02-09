@@ -2,11 +2,22 @@
 
 ## Pasos para desplegar en Railway
 
-### 1. Preparar el repositorio
+### ⚠️ Importante: Preparar el repositorio local primero
+
+Cada vez que ejecutes `composer install` localmente, confirmá el `composer.lock`:
+
+```bash
+composer install
+git add composer.lock
+git commit -m "Update composer.lock"
+git push
+```
+
+### 1. Preparar el repositorio para Railway
 
 ```bash
 git add .
-git commit -m "Add Railway configuration with fixes"
+git commit -m "Fixed Railway deployment configuration"
 git push
 ```
 
