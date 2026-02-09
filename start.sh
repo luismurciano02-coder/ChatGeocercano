@@ -3,6 +3,7 @@ set -e
 
 export APP_ENV=prod
 export APP_DEBUG=0
+export PORT=${PORT:-8080}
 
 echo "Starting ChatGeocercano deployment..."
 
@@ -11,7 +12,7 @@ echo "Installing Composer dependencies..."
 
 # Try to install from lock file first
 if ! composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts -q 2>/dev/null; then
-    echo "⚠️ Lock file incompatible with PHP 8.2. Updating dependencies..."
+    echo "⚠️ Lock file incompatible with PHP version. Updating dependencies..."
     # Remove lock file and update to compatible versions
     rm -f composer.lock
     composer update --no-dev --optimize-autoloader --prefer-dist --no-scripts -q
@@ -44,8 +45,8 @@ php bin/console cache:warmup \
     --env=prod 2>&1 || echo "⚠️ Cache warmup warning (non-critical)"
 
 echo "✓ Deployment setup complete"
-echo "Starting PHP-FPM on port ${PORT:-8000}..."
+echo "Starting web server on 0.0.0.0:$PORT..."
 
-# Start PHP-FPM in foreground
-exec php-fpm -F -d error_log=/dev/stderr
+# Use PHP built-in server
+exec php -S 0.0.0.0:$PORT -t public
 
