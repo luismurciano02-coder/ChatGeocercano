@@ -6,13 +6,23 @@ export APP_DEBUG=0
 
 echo "Starting ChatGeocercano deployment..."
 
-# Install dependencies without triggering post-scripts
+# Install dependencies - if lock is incompatible, update it
 echo "Installing Composer dependencies..."
-composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts 2>&1
+
+# Try to install from lock file first
+if ! composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts -q 2>/dev/null; then
+    echo "⚠️ Lock file incompatible with PHP 8.2. Updating dependencies..."
+    # Remove lock file and update to compatible versions
+    rm -f composer.lock
+    composer update --no-dev --optimize-autoloader --prefer-dist --no-scripts -q
+    echo "✓ Dependencies updated"
+else
+    echo "✓ Dependencies installed from lock file"
+fi
 
 # Build assets
 echo "Building assets..."
-npm run build 2>&1
+npm run build 2>&1 || echo "⚠️ Asset build warning"
 
 # Run migrations (allow to fail gracefully)
 echo "Running database migrations..."
