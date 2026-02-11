@@ -377,19 +377,86 @@
         <div class="toc">
             <h3>📑 Endpoints</h3>
             <ul>
-                <li><a href="#register">1. Register</a></li>
-                <li><a href="#login">2. Login</a></li>
-                <li><a href="#logout">3. Logout</a></li>
-                <li><a href="#home">4. Usuarios Cercanos</a></li>
-                <li><a href="#general">5. Chat General</a></li>
-                <li><a href="#privado">6. Chat Privado</a></li>
-                <li><a href="#cambiar-chat">7. Cambiar Chat</a></li>
-                <li><a href="#invitar">8. Invitar Usuario</a></li>
+                <li><a href="#conexion">1. Conexión</a></li>
+                <li><a href="#register">2. Register</a></li>
+                <li><a href="#login">3. Login</a></li>
+                <li><a href="#logout">4. Logout</a></li>
+                <li><a href="#home">5. Usuarios Cercanos</a></li>
+                <li><a href="#general">6. Chat General</a></li>
+                <li><a href="#privado">7. Chat Privado</a></li>
+                <li><a href="#cambiar-chat">8. Cambiar Chat</a></li>
+                <li><a href="#invitar">9. Invitar Usuario</a></li>
             </ul>
         </div>
         
         <!-- Contenido -->
         <div>
+            <!-- CONEXIÓN -->
+            <div class="endpoint" id="conexion">
+                <div class="endpoint-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-path">/api/conexion</span>
+                    <span class="access-badge access-public">Público</span>
+                </div>
+                <div class="endpoint-content">
+                    <div class="section">
+                        <div class="section-title">Explicación</div>
+                        <p class="description">Verifica que la API está funcionando correctamente y valida la API_KEY proporcionada. Este endpoint puede usarse para health checks o para confirmar autenticación.</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Ejemplo datos en la llamada</div>
+                        <div class="code-block json">Header: X-API-Key: CGC_2026_7f8e9a3b4c5d6e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+
+O query parameter:
+?api_key=CGC_2026_7f8e9a3b4c5d6e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta exitosa (200)</div>
+                        <div class="code-block json response-success">{
+  "success": true,
+  "message": "Conexion exitosa",
+  "data": {}
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (400)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "API Key requerida",
+  "error": {
+    "apiKey": "Campo obligatorio"
+  }
+}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Respuesta fallida (401)</div>
+                        <div class="code-block json response-error">{
+  "success": false,
+  "message": "API Key inválida",
+  "error": null
+}</div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <div class="section-title">🧪 Prueba este endpoint</div>
+                        <form id="test-conexion">
+                            <div class="form-group">
+                                <label>API_KEY</label>
+                                <input type="text" name="api_key" placeholder="CGC_2026_7f8e9a3b4c5d6e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6" required>
+                            </div>
+                            <button type="button" class="test-button" onclick="testEndpointWithApiKey('test-conexion', '/api/conexion')">Enviar Solicitud</button>
+                            <div class="response-box" id="response-test-conexion"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="section-divider">
+            
             <!-- REGISTER -->
             <div class="endpoint" id="register">
                 <div class="endpoint-header">
@@ -892,10 +959,67 @@
         const fetchOptions = {
             method: method,
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Content-Type': 'application/json'
             }
         };
+        
+        // Solo agregar Authorization header si hay token
+        if (token) {
+            fetchOptions.headers['Authorization'] = 'Bearer ' + token;
+        }
+        
+        // Solo agregar body para POST
+        if (method === 'POST') {
+            fetchOptions.body = JSON.stringify(data);
+        }
+        
+        // Realizar solicitud
+        fetch(url, fetchOptions)
+        .then(response => response.json())
+        .then(result => {
+            responseBox.classList.add('show');
+            responseBox.classList.remove('error');
+            responseBox.textContent = JSON.stringify(result, null, 2);
+            
+            // Colorear si es error
+            if (!result.success) {
+                responseBox.classList.add('error');
+            }
+        })
+        .catch(error => {
+            responseBox.classList.add('show', 'error');
+            responseBox.textContent = 'Error: ' + error.message;
+        });
+    }
+    
+    function testEndpointWithApiKey(formId, endpoint, method = 'GET') {
+        const form = document.getElementById(formId);
+        const responseBox = document.getElementById('response-' + formId);
+        
+        // Obtener datos del formulario
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        // Extraer API_KEY
+        const apiKey = data.api_key;
+        delete data.api_key;
+        
+        // Construir la URL correcta
+        const baseUrl = window.location.pathname;
+        const url = baseUrl.replace('/api/doc', endpoint);
+        
+        // Configurar la solicitud
+        const fetchOptions = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        // Agregar API_KEY al header
+        if (apiKey) {
+            fetchOptions.headers['X-API-Key'] = apiKey;
+        }
         
         // Solo agregar body para POST
         if (method === 'POST') {

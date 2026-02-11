@@ -15,6 +15,43 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[Route('/api', name: 'api_')]
 final class ApiController extends AbstractController
 {
+    private const API_KEY = 'CGC_2026_7f8e9a3b4c5d6e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6';
+   
+    #[Route('/conexion', name: 'conexion', methods: ['GET', 'POST'])]
+    public function conexion(Request $request): JsonResponse
+    {
+        // Obtener API_KEY del body JSON, header o query parameter
+        $data = json_decode($request->getContent(), true);
+        $apiKey = $data['apiKey'] ?? $request->headers->get('X-API-Key') ?? $request->query->get('api_key');
+        
+        // Validar que se proporcione API_KEY
+        if (!$apiKey) {
+            return $this->json([
+                'success' => false,
+                'message' => 'API Key requerida',
+                'error' => [
+                    'apiKey' => 'Campo obligatorio'
+                ]
+            ], 400);
+        }
+        
+        // Validar que la API_KEY sea correcta
+        if ($apiKey !== self::API_KEY) {
+            return $this->json([
+                'success' => false,
+                'message' => 'API Key inválida',
+                'error' => null
+            ], 401);
+        }
+        
+        // API_KEY correcta - conexión exitosa
+        return $this->json([
+            'success' => true,
+            'message' => 'Conexion exitosa',
+            'data' => []
+        ], 200);
+    }
+
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function apiRegister(
         Request $request,
